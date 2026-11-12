@@ -1,0 +1,34 @@
+[
+  {
+    "flow": "pizza",
+    "message": "Medium thin crust with olives and paprika",
+    "expected": {
+      "size": "medium",
+      "crust": "thin",
+      "add_toppings": ["olives", "paprika"]
+    }
+  },
+  {
+    "flow": "pizza",
+    "message": "Change toppings to mushrooms and onions",
+    "expected": {
+      "replace_toppings": ["mushrooms", "onions"]
+    }
+  },
+  {
+    "flow": "bagel",
+    "message": "Everything bagel with roast beef, onion and capers",
+    "expected": {
+      "bread_type": "everything",
+      "filling": "roast beef",
+      "add_extras": ["capers", "onion"]
+    }
+  },
+  {
+    "flow": "pizza",
+    "message": "Confirm",
+    "expected": {
+      "confirmed": true
+    }
+  }
+]

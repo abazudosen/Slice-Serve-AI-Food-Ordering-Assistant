@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f7f7f4" />
+  <title>Slice &amp; Serve — Order assistant</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f7f7f4;
+      --surface: #fff;
+      --surface-soft: #fbfbf9;
+      --ink: #20231f;
+      --muted: #777d75;
+      --line: #e8e9e4;
+      --accent: #ec5b3e;
+      --accent-dark: #d94b32;
+      --accent-soft: #fff0eb;
+      --green: #2f8f68;
+      --green-soft: #eaf6ef;
+      --shadow: 0 16px 50px rgba(34, 39, 31, 0.07);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 86% 0%, rgba(245, 214, 194, 0.27), transparent 34rem),
+        var(--page);
+    }
+
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 3px solid rgba(236, 91, 62, 0.27);
+      outline-offset: 2px;
+    }
+
+    .topbar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(18px, 4vw, 56px);
+      border-bottom: 1px solid rgba(232, 233, 228, 0.8);
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand, .topbar-right, .connection, .section-heading, .session-row,
+    .chat-heading, .chat-heading-meta, .composer-actions, .order-heading,
+    .detail-row, .debug-heading, .message-meta {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand { gap: 11px; }
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: var(--accent-soft);
+      font-size: 21px;
+    }
+    .brand-name { font-size: 15px; font-weight: 750; letter-spacing: -0.035em; }
+    .brand-subtitle { margin-top: 2px; color: var(--muted); font-size: 11px; }
+    .topbar-right { gap: 12px; }
+    .connection {
+      gap: 8px;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: #555b53;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .connection-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #d6a64d;
+      box-shadow: 0 0 0 3px rgba(214, 166, 77, 0.12);
+    }
+    .connection.online .connection-dot { background: var(--green); box-shadow: 0 0 0 3px rgba(47, 143, 104, 0.12); }
+    .connection.offline .connection-dot { background: var(--accent); box-shadow: 0 0 0 3px rgba(236, 91, 62, 0.12); }
+    .local-tag {
+      padding: 7px 10px;
+      border-radius: 7px;
+      background: #f2f2ef;
+      color: #666b63;
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .workspace {
+      width: min(1440px, 100%);
+      min-height: calc(100vh - 72px);
+      display: grid;
+      grid-template-columns: 228px minmax(360px, 1fr) 286px;
+      gap: 22px;
+      margin: 0 auto;
+      padding: 30px clamp(18px, 4vw, 56px) 36px;
+    }
+
+    .sidebar { padding-top: 9px; }
+    .section-heading {
+      justify-content: space-between;
+      margin: 0 0 12px;
+      color: #898e87;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+    .workflow-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--surface);
+      box-shadow: 0 4px 16px rgba(34, 39, 31, 0.025);
+    }
+    .workflow-label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 11px; font-weight: 600; }
+    .workflow-select, .saved-select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background-color: var(--surface-soft);
+      color: var(--ink);
+    }
+    .workflow-select { padding: 10px 11px; font-size: 13px; font-weight: 650; }
+    .new-order {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 9px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+    .new-order:hover { transform: translateY(-1px); background: var(--accent-dark); }
+    .sidebar-section { margin-top: 31px; }
+    .saved-select { padding: 10px 9px; font-size: 11px; }
+    .resume-button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+    .resume-button:hover:not(:disabled) { border-color: #d2d5ce; background: #f4f5f1; }
+    .resume-button:disabled { cursor: wait; opacity: 0.55; }
+    #sessions-status {
+      min-height: 26px;
+      margin: 8px 1px 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+    .workflow-note {
+      margin-top: 27px;
+      padding: 13px;
+      border: 1px solid #f1e2d9;
+      border-radius: 11px;
+      background: #fff8f4;
+      color: #75645d;
+      font-size: 11px;
+      line-height: 1.6;
+    }
+    .workflow-note strong { display: block; margin-bottom: 3px; color: #56483f; }
+
+    .chat-card, .order-card {
+      min-width: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+    .chat-card { min-height: min(790px, calc(100vh - 126px)); display: flex; flex-direction: column; }
+    .chat-heading {
+      min-height: 75px;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 17px 21px;
+      border-bottom: 1px solid var(--line);
+    }
+    .chat-heading h1 { margin: 0; font-size: 16px; font-weight: 750; letter-spacing: -0.035em; }
+    .chat-subtitle { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+    .chat-heading-meta { flex-shrink: 0; gap: 6px; color: var(--muted); font-size: 10px; }
+    .chat-heading-meta .sparkle { color: var(--accent); font-size: 14px; }
+    .messages {
+      flex: 1;
+      min-height: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 17px;
+      overflow-y: auto;
+      padding: 23px clamp(15px, 3vw, 28px);
+      scroll-behavior: smooth;
+    }
+    .message-row { width: 100%; display: flex; align-items: flex-end; gap: 9px; }
+    .message-row.user-row { justify-content: flex-end; }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #f8f8f5;
+      font-size: 14px;
+    }
+    .bubble {
+      max-width: min(82%, 560px);
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px 14px 14px 4px;
+      background: #f8f8f5;
+      color: #373b35;
+      font-size: 13px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+    .user-row .bubble {
+      border-color: transparent;
+      border-radius: 14px 14px 4px 14px;
+      background: var(--accent);
+      color: #fff;
+    }
+    .agent.pending .bubble { border-style: dashed; background: #fffaf7; color: var(--muted); }
+    .message-meta { gap: 5px; margin: 0 0 5px 2px; color: #999e96; font-size: 9px; }
+    .user-row .message-meta { justify-content: flex-end; margin-right: 2px; }
+    .typing-dots { display: inline-flex; gap: 4px; }
+    .typing-dots span { width: 5px; height: 5px; border-radius: 50%; background: #bd806f; animation: pulse 1s ease-in-out infinite; }
+    .typing-dots span:nth-child(2) { animation-delay: 120ms; }
+    .typing-dots span:nth-child(3) { animation-delay: 240ms; }
+    @keyframes pulse { 50% { transform: translateY(-3px); opacity: 0.45; } }
+
+    .composer-wrap { padding: 13px 18px 16px; border-top: 1px solid var(--line); background: #fdfdfb; }
+    .prompt-row { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 11px 1px; }
+    .prompt-chip {
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: #686e66;
+      cursor: pointer;
+      font-size: 10px;
+      transition: border-color 130ms ease, color 130ms ease, background 130ms ease;
+    }
+    .prompt-chip:hover { border-color: #f1b6a7; background: var(--accent-soft); color: var(--accent-dark); }
+    .composer {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 7px;
+      border: 1px solid #dedfd9;
+      border-radius: 12px;
+      background: #fff;
+      transition: border-color 150ms ease, box-shadow 150ms ease;
+    }
+    .composer:focus-within { border-color: #eda28f; box-shadow: 0 0 0 3px rgba(236, 91, 62, 0.08); }
+    .message-input {
+      min-width: 0;
+      min-height: 39px;
+      flex: 1;
+      padding: 10px 7px;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      font-size: 12px;
+    }
+    .message-input::placeholder { color: #a0a49d; }
+    .message-input:focus-visible { outline: 0; }
+    .send-button {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 15px;
+      border: 0;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #fff;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+    .send-button:hover:not(:disabled) { transform: translateY(-1px); background: #383d35; }
+    .send-button:disabled { cursor: wait; opacity: 0.55; }
+    #stop-turn { width: auto; flex: 0 0 auto; margin: 0; align-self: stretch; }
+    .composer-hint { display: flex; justify-content: space-between; gap: 10px; margin: 8px 3px 0; color: #9a9e97; font-size: 9px; }
+    .error-banner {
+      margin: 0 18px 12px;
+      padding: 10px 12px;
+      border: 1px solid #f1c4b8;
+      border-radius: 9px;
+      background: #fff5f1;
+      color: #a43e2a;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+    [hidden] { display: none !important; }
+
+    .order-card { align-self: start; padding: 18px; }
+    .order-heading { justify-content: space-between; gap: 10px; margin-bottom: 17px; }
+    .order-heading h2 { margin: 0; font-size: 13px; font-weight: 750; letter-spacing: -0.02em; }
+    .draft-badge { padding: 5px 7px; border-radius: 6px; background: #f3f3ef; color: #777c74; font-size: 9px; font-weight: 700; }
+    .draft-badge.placed { background: var(--green-soft); color: var(--green); }
+    .progress-copy { display: flex; justify-content: space-between; margin-bottom: 8px; color: var(--muted); font-size: 10px; }
+    .progress-copy strong { color: var(--ink); }
+    .progress-track { height: 5px; overflow: hidden; border-radius: 999px; background: #efefeb; }
+    #order-progress { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #f0795d, #e95035); transition: width 250ms ease; }
+    .order-details { display: grid; gap: 0; margin-top: 17px; }
+    .detail-row { min-height: 38px; justify-content: space-between; gap: 9px; border-bottom: 1px solid #f0f0ed; font-size: 10px; }
+    .detail-row:last-child { border-bottom: 0; }
+    .detail-label { color: #858a82; }
+    .detail-value { max-width: 62%; overflow: hidden; color: #333831; font-weight: 650; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+    .detail-value.empty { color: #b0b4ad; font-weight: 450; }
+    .order-footnote { margin: 13px 0 0; padding: 10px; border-radius: 8px; background: #f7f8f4; color: #767c72; font-size: 9px; line-height: 1.55; }
+    .debug-details { margin-top: 21px; border-top: 1px solid var(--line); }
+    .debug-details summary { padding: 15px 0 5px; color: #696f67; cursor: pointer; font-size: 10px; font-weight: 700; }
+    .debug-details summary::marker { color: #9ca198; }
+    .debug-caption { margin: 7px 0 8px; color: #91968e; font-size: 9px; line-height: 1.45; }
+    #state, #trace {
+      max-height: 200px;
+      overflow: auto;
+      margin: 0 0 9px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8f8f5;
+      color: #50564e;
+      font: 9px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .debug-title { margin: 13px 0 6px; color: #7d827a; font-size: 9px; font-weight: 750; text-transform: uppercase; letter-spacing: 0.07em; }
+
+    @media (max-width: 1120px) {
+      .workspace { grid-template-columns: 195px minmax(320px, 1fr); gap: 16px; }
+      .order-card { grid-column: 2; display: grid; grid-template-columns: 1fr 1.2fr; column-gap: 22px; }
+      .order-heading, .progress-copy, .progress-track { grid-column: 1; }
+      .order-details { grid-column: 2; grid-row: 1 / span 4; margin-top: 0; }
+      .order-footnote, .debug-details { grid-column: 1 / -1; }
+    }
+    @media (max-width: 720px) {
+      .topbar { height: 62px; padding: 0 16px; }
+      .brand-subtitle, .local-tag { display: none; }
+      .workspace { min-height: calc(100vh - 62px); display: flex; flex-direction: column; gap: 13px; padding: 15px 12px 22px; }
+      .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0; }
+      .sidebar > .section-heading { grid-column: 1 / -1; margin: 0; }
+      .workflow-card { padding: 10px; }
+      .sidebar-section { margin: 0; }
+      .sidebar-section .section-heading { min-height: 17px; }
+      .workflow-note { display: none; }
+      .chat-card { min-height: 65vh; }
+      .chat-heading { min-height: 66px; padding: 13px 15px; }
+      .chat-heading h1 { font-size: 14px; }
+      .chat-heading-meta { font-size: 0; }
+      .messages { min-height: 300px; padding: 18px 12px; }
+      .bubble { max-width: 88%; font-size: 12px; }
+      .composer-wrap { padding: 11px 12px 13px; }
+      .prompt-row { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+      .prompt-chip { flex: 0 0 auto; }
+      .composer-hint { font-size: 8px; }
+      .order-card { display: block; padding: 15px; }
+      .order-details { margin-top: 13px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">🍕</div>
+      <div>
+        <div class="brand-name">Slice &amp; Serve</div>
+        <div class="brand-subtitle">A thoughtful little order assistant</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div id="connection-indicator" class="connection" role="status" aria-live="polite">
+        <span class="connection-dot" aria-hidden="true"></span>
+        <span id="connection-label">Connecting</span>
+      </div>
+      <span class="local-tag">Planner · Executor · Monitor</span>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar" aria-label="Order controls">
+      <h2 class="section-heading">Your workspace</h2>
+      <section class="workflow-card">
+        <label class="workflow-label" for="flow">Choose a menu</label>
+        <select id="flow" class="workflow-select">
+          <option value="pizza" selected>🍕 &nbsp; Pizza order</option>
+          <option value="bagel">🥯 &nbsp; Bagel order</option>
+        </select>
+        <button id="new-order" class="new-order" type="button"><span aria-hidden="true">＋</span> Start a new order</button>
+      </section>
+
+      <section class="sidebar-section" aria-labelledby="saved-heading">
+        <h2 id="saved-heading" class="section-heading">Recent orders</h2>
+        <select id="saved-sessions" class="saved-select" aria-label="Saved orders">
+          <option value="">Select a saved order</option>
+        </select>
+        <button id="load-session" class="resume-button" type="button">Resume selected order</button>
+        <button id="delete-session" class="resume-button" type="button">Delete selected order</button>
+        <p id="sessions-status" aria-live="polite"></p>
+      </section>
+
+      <div class="workflow-note">
+        <strong>Good to know</strong>
+        Your order is only placed after you review the summary and confirm.
+      </div>
+    </aside>
+
+    <section class="chat-card" aria-label="Order conversation">
+      <header class="chat-heading">
+        <div>
+          <h1 id="chat-title">Pizza order</h1>
+          <p id="chat-subtitle" class="chat-subtitle">Tell me what sounds good. We can work out the details together.</p>
+        </div>
+        <div class="chat-heading-meta"><span class="sparkle" aria-hidden="true">✦</span> Helpful, one step at a time</div>
+      </header>
+
+      <div id="messages" class="messages" role="log" aria-live="polite" aria-relevant="additions text"></div>
+      <div id="error-banner" class="error-banner" role="alert" hidden></div>
+
+      <div class="composer-wrap">
+        <div class="prompt-row" aria-label="Suggested messages">
+          <button class="prompt-chip" type="button" data-prompt="Medium thin crust with olives">Medium thin crust</button>
+          <button class="prompt-chip" type="button" data-prompt="Add mushrooms and onions">Add toppings</button>
+          <button class="prompt-chip" type="button" data-prompt="I'd like a sesame bagel with cream cheese">Try a bagel</button>
+        </div>
+        <form id="composer" class="composer">
+          <input id="message" class="message-input" autocomplete="off" aria-label="Your message" placeholder="Type a message..." />
+          <button id="stop-turn" class="resume-button" type="button" hidden>Stop</button>
+          <button class="send-button" type="submit"><span>Send</span><span aria-hidden="true">↗</span></button>
+        </form>
+        <div class="composer-hint"><span>Enter to send · Stop a turn to change your intent</span><span>Powered by a local LLM</span></div>
+      </div>
+    </section>
+
+    <aside class="order-card" aria-label="Order details and trace">
+      <div class="order-heading">
+        <h2>Your order</h2>
+        <span id="order-status" class="draft-badge">IN PROGRESS</span>
+      </div>
+      <div class="progress-copy"><span>Order details</span><span id="progress-label"><strong>0</strong> / 5</span></div>
+      <div class="progress-track" role="progressbar" aria-label="Order details completed" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0">
+        <div id="order-progress"></div>
+      </div>
+      <div id="order-details" class="order-details"></div>
+      <p class="order-footnote">We’ll check your order against the menu and delivery rules before asking you to confirm.</p>
+
+      <details class="debug-details">
+        <summary>Developer details</summary>
+        <p class="debug-caption">Useful for exploring extraction, planning decisions, and execution events.</p>
+        <h3 class="debug-title">Current state</h3>
+        <pre id="state">{}</pre>
+        <h3 class="debug-title">Latest trace · last 5 turns</h3>
+        <pre id="trace">[]</pre>
+      </details>
+    </aside>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
