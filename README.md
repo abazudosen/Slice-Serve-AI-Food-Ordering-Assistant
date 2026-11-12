@@ -1,7 +1,5 @@
 # Slice & Serve — AI Food Ordering Assistant
 
-[![Pizza ordering agent demo](./assets/pizza-order-demo.gif)](./assets/pizza-order-final.png)
-
 Slice & Serve is a portfolio project exploring how an AI assistant can collect and validate food orders through a modern chat interface. It supports pizza and bagel flows, lets users save and resume demo orders, and exposes a developer trace to make the agent's decisions easier to inspect.
 
 Orders move through explicit planning, execution, and monitoring steps. Ollama proposes structured updates; deterministic validation checks them against the user's message before they can change the order. The app applies demo constraints and requires confirmation before simulating order placement. If the model is unavailable or times out, a limited deterministic parser handles supported requests.
@@ -265,6 +263,8 @@ The safeguards here are demo controls, not production security or reliability gu
 The demo above animates the pizza ordering flow. For a full-size still image:
 
 ![Final order flow screenshot](./assets/pizza-order-final.png)
+
+[![Pizza ordering agent demo](./assets/pizza-order-demo.gif)](./assets/pizza-order-final.png)
 
 Try constraint scenarios:
 
