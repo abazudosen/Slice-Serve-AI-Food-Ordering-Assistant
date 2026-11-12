@@ -11,13 +11,10 @@ from pydantic import ValidationError
 
 from app_models import BagelExtraction, BagelState, PizzaExtraction, PizzaState
 
-# 'llama3.2'
-# use this qwen2.5:7b
-
 class OllamaClient:
     def __init__(self) -> None:
         self.host = os.getenv("OLLAMA_HOST", "http://127.0.0.1:11434")
-        self.extract_model = os.getenv("OLLAMA_EXTRACT_MODEL", os.getenv("OLLAMA_MODEL", "llama3.2"))
+        self.extract_model = os.getenv("OLLAMA_EXTRACT_MODEL", os.getenv("OLLAMA_MODEL", "qwen2.5:7b"))
         self.timeout_seconds = min(max(float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "8")), 1.0), 30.0)
         self.extract_retries = min(max(int(os.getenv("OLLAMA_EXTRACT_RETRIES", "0")), 0), 2)
 
