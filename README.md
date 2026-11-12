@@ -117,7 +117,7 @@ sequenceDiagram
 1. Python 3.11 or 3.12
 2. [uv](https://github.com/astral-sh/uv)
 3. [Ollama](https://ollama.com/) installed and running locally
-4. An Ollama model pulled locally (default extraction model in this project: `llama3.2`)
+4. An Ollama model pulled locally (default extraction model in this project: `qwen2.5:7b`)
 
 Install dependencies from the project directory:
 
@@ -132,7 +132,7 @@ The `dev` extra installs `pytest` alongside the application dependencies declare
 If you need to pull the default model:
 
 ```bash
-ollama pull llama3.2
+ollama pull qwen2.5:7b
 ```
 
 ## Tests and evaluation
@@ -174,7 +174,7 @@ Open:
 The following environment variables are optional:
 
 - `OLLAMA_HOST` (default: `http://127.0.0.1:11434`)
-- `OLLAMA_EXTRACT_MODEL` (default: `llama3.2`)
+- `OLLAMA_EXTRACT_MODEL` (default: `qwen2.5:7b`)
 - `OLLAMA_TIMEOUT_SECONDS` (default: `8`; clamped to 1–30 seconds)
 - `OLLAMA_EXTRACT_RETRIES` (default: `0`; clamped to 0–2 retries)
 - `OLLAMA_MODEL` (legacy fallback alias for extraction model)
@@ -184,7 +184,7 @@ The following environment variables are optional:
 Example:
 
 ```bash
-set OLLAMA_EXTRACT_MODEL=llama3.2
+set OLLAMA_EXTRACT_MODEL=qwen2.5:7b
 set OLLAMA_TIMEOUT_SECONDS=8
 uv run uvicorn main:app --reload --port 8000
 ```
