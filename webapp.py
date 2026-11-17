@@ -20,7 +20,7 @@ from session_store import SessionRepository
 
 
 logger = logging.getLogger("pizza_order_agent")
-app = FastAPI(title="Chapter 11 Assignment: Pizza Ordering Agent")
+app = FastAPI(title="Slice Serve AI Food Ordering Assistant)
 
 BASE_DIR = Path(__file__).resolve().parent
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
