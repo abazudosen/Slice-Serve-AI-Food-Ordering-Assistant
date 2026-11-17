@@ -43,7 +43,7 @@ wheels = [
 ]
 
 [[package]]
-name = "ch11-pizza-agent-assignment"
+name = "slice-serve-ai-good-ordering-assistant"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
