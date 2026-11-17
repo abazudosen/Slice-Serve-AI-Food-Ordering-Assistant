@@ -1,7 +1,7 @@
 [project]
-name = "ch11-pizza-agent-assignment"
+name = "slice-serve-ai-good-ordering-assistant"
 version = "0.1.0"
-description = "Chapter 11 assignment solution: pizza ordering agent with planner-executor-monitor"
+description = "Slice Serve AI Ordering Assistant: pizza ordering agent with planner-executor-monitor"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
